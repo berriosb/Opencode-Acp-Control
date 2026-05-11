@@ -18,18 +18,31 @@ Control OpenCode directly via the Agent Client Protocol (ACP).
 
 | Action | How |
 |--------|-----|
-| Start OpenCode | `bash(command: "opencode acp --cwd /path/to/project", background: true)` |
+| Start OpenCode | `terminal(command: "opencode acp --cwd /path/to/project", background: true)` |
 | Send message | `process.write(sessionId, data: "<json-rpc>\n")` |
 | Read response | `process.poll(sessionId)` - repeat every 2 seconds |
 | Stop OpenCode | `process.kill(sessionId)` |
-| List sessions | `bash(command: "opencode session list", workdir: "...")` |
+| List sessions | `terminal(command: "opencode session list", workdir: "...")` |
 | Resume session | List sessions → ask user → `session/load` |
-| Check version | `bash(command: "opencode --version")` |
+| Check version | `terminal(command: "opencode --version")` |
+
+## Tool Requirements
+
+This skill uses generic tool names. Map them to your platform:
+
+| Generic | Hermes Agent | Clawdbot |
+|---------|-------------|----------|
+| `terminal(cmd, background)` | `terminal()` | `bash()` |
+| `process.write(id, data)` | `process.write()` | `process.write()` |
+| `process.poll(id)` | `process.poll()` | `process.poll()` |
+| `process.kill(id)` | `process.kill()` | `process.kill()` |
+| `web_fetch(url)` | `web_extract()` | `webfetch()` |
+| `ask_user(question)` | `clarify()` | `askUser()` |
 
 ## Starting OpenCode
 
 ```
-bash(
+terminal(
   command: "opencode acp --cwd /path/to/your/project",
   background: true,
   workdir: "/path/to/your/project"
@@ -122,8 +135,8 @@ Per OpenCode instance, track:
 
 ## Example: Complete Interaction
 
-```
-1. bash(command: "opencode acp --cwd /home/user/myproject", background: true, workdir: "/home/user/myproject")
+```terminal
+1. terminal(command: "opencode acp --cwd /home/user/myproject", background: true, workdir: "/home/user/myproject")
    -> processSessionId: "bg_42"
 
 2. process.write(sessionId: "bg_42", data: '{"jsonrpc":"2.0","id":0,"method":"initialize",...}\n')
@@ -150,7 +163,7 @@ Resume a previous OpenCode session by letting the user choose from available ses
 ### Step 1: List Available Sessions
 
 ```
-bash(command: "opencode session list", workdir: "/path/to/project")
+terminal(command: "opencode session list", workdir: "/path/to/project")
 ```
 
 Example output:
@@ -181,7 +194,7 @@ Once user responds (e.g., "1", "the first one", or "ses_451cd8ae..."):
 
 1. **Start OpenCode ACP**:
    ```
-   bash(command: "opencode acp --cwd /path/to/project", background: true, workdir: "/path/to/project")
+   terminal(command: "opencode acp --cwd /path/to/project", background: true, workdir: "/path/to/project")
    ```
 
 2. **Initialize**:
@@ -203,7 +216,7 @@ On load, OpenCode streams the full conversation history back to you.
 ```
 function resumeSession(workdir):
     # List available sessions
-    output = bash("opencode session list", workdir: workdir)
+    output = terminal("opencode session list", workdir: workdir)
     sessions = parseSessionList(output)
     
     if sessions.empty:
@@ -211,11 +224,11 @@ function resumeSession(workdir):
         return createNewSession(workdir)
     
     # Ask user to choose
-    choice = askUser("Which session to resume?", sessions)
+    choice = ask_user("Which session to resume?", sessions)
     selectedId = matchUserChoice(choice, sessions)
     
     # Start OpenCode and load session
-    process = bash("opencode acp --cwd " + workdir, background: true, workdir: workdir)
+    process = terminal("opencode acp --cwd " + workdir, background: true, workdir: workdir)
     initialize(process)
     
     session_load(process, selectedId, workdir, mcpServers: [])
@@ -239,7 +252,7 @@ OpenCode auto-updates when restarted. Use this workflow to check and trigger upd
 ### Step 1: Check Current Version
 
 ```
-bash(command: "opencode --version")
+terminal(command: "opencode --version")
 ```
 
 Returns something like: `opencode version 1.1.13`
@@ -249,7 +262,7 @@ Extract the version number (e.g., `1.1.13`).
 ### Step 2: Check Latest Version
 
 ```
-webfetch(url: "https://github.com/anomalyco/opencode/releases/latest", format: "text")
+web_fetch(url: "https://github.com/anomalyco/opencode/releases/latest", format: "text")
 ```
 
 The redirect URL contains the latest version tag:
@@ -262,13 +275,13 @@ If latest version > current version:
 
 1. **Stop all running OpenCode processes**:
    ```
-   process.list()  # Find all "opencode acp" processes
+   process(action: "list")  # Find all "opencode acp" processes
    process.kill(sessionId) # For each running instance
    ```
 
 2. **Restart instances** (OpenCode auto-downloads new binary on start):
    ```
-   bash(command: "opencode acp --cwd /path/to/project", background: true, workdir: "/path/to/project")
+   terminal(command: "opencode acp --cwd /path/to/project", background: true, workdir: "/path/to/project")
    ```
 
 3. **Re-initialize** each instance (initialize + session/load for existing sessions)
@@ -287,14 +300,14 @@ If version still doesn't match latest:
 
 ```
 function updateOpenCode():
-    current = bash("opencode --version")  # e.g., "1.1.13"
+    current = terminal("opencode --version")  # e.g., "1.1.13"
     
-    latestPage = webfetch("https://github.com/anomalyco/opencode/releases/latest")
+    latestPage = web_fetch("https://github.com/anomalyco/opencode/releases/latest")
     latest = extractVersionFromRedirectUrl(latestPage)  # e.g., "1.2.0"
     
     if semverCompare(latest, current) > 0:
         # Stop all instances
-        for process in process.list():
+        for process in process(action: "list"):
             if process.command.includes("opencode"):
                 process.kill(process.sessionId)
         
@@ -302,10 +315,10 @@ function updateOpenCode():
         sleep(2 seconds)
         
         # Restart triggers auto-update
-        bash("opencode acp", background: true)
+        terminal("opencode acp", background: true)
         
         # Verify
-        newVersion = bash("opencode --version")
+        newVersion = terminal("opencode --version")
         if newVersion != latest:
             notify("Auto-update may have failed. Manual update recommended.")
     else:
