@@ -20,10 +20,25 @@ git clone https://github.com/berriosb/Opencode-Acp-Control.git
 cd Opencode-Acp-Control
 
 # Load as skill (Hermes Agent)
-hermes skill install ./SKILL.md
+# Option A — copy into the active profile's skills dir
+cp SKILL.md ~/.hermes/profiles/<profile>/skills/opencode-acp-control.md
 
-# Or just copy SKILL.md to your agent's skills directory
-cp SKILL.md ~/.hermes/profiles/<profile>/skills/
+# Option B — load from a custom path (Hermes picks up any .md under the skills tree)
+mkdir -p ~/.hermes/profiles/<profile>/skills/opencode-acp-control
+cp SKILL.md ~/.hermes/profiles/<profile>/skills/opencode-acp-control/SKILL.md
+```
+
+## Try It Locally
+
+```bash
+# Print the JSON-RPC frames the skill produces (no opencode needed)
+python3 examples/acp_demo.py --dry-run
+
+# Spawn opencode acp, run initialize + session/new, and exit (no LLM call)
+python3 examples/acp_demo.py --no-prompt
+
+# Full end-to-end run (requires a configured LLM provider)
+python3 examples/acp_demo.py --cwd /path/to/project --prompt "list the files in this repo"
 ```
 
 ## Requirements
@@ -59,6 +74,9 @@ This skill uses these agent tools (names vary by platform):
 ## Files
 
 - `SKILL.md` — The skill definition (load this into your agent)
+- `examples/acp_demo.py` — Runnable Python script that demonstrates the full ACP workflow against a live `opencode acp` process
+- `.github/workflows/ci.yml` — CI: `markdownlint` + URL link check + Python syntax check
+- `CHANGELOG.md` — Release notes
 - `_meta.json` — Registry metadata (Hermes)
 
 ## License

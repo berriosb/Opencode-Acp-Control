@@ -11,3 +11,8 @@ Desktop.ini
 
 # Node (if any examples use it)
 node_modules/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class

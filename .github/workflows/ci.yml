@@ -1,0 +1,85 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  markdown-lint:
+    name: markdown lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install markdownlint-cli
+        run: npm install -g markdownlint-cli@0.42.0
+
+      - name: Lint SKILL.md, README.md, CHANGELOG.md
+        run: |
+          set -e
+          markdownlint --version
+          markdownlint SKILL.md README.md CHANGELOG.md
+
+  link-check:
+    name: link check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract URLs from docs
+        id: urls
+        run: |
+          set -euo pipefail
+          {
+            # Match URLs inside markdown backticks or bare text. Stop at
+            # whitespace, closing backtick, or common trailing punctuation.
+            grep -hoE 'https?://[A-Za-z0-9._/?#&+=%-]+' SKILL.md README.md CHANGELOG.md \
+              | grep -vE '\.(png|jpg|jpeg|gif|svg|ico|pdf)$' \
+              | sort -u
+          } > urls.txt
+          echo "URLs to check: $(wc -l < urls.txt)"
+          cat urls.txt
+
+      - name: Check URLs with lychee
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --no-progress --max-concurrency 4 --timeout 15 --accept 200,203,206,301,302,303,307,308,403 --max-redirects 5 --exclude-loopback --exclude-mail urls.txt
+          fail: true
+          lychee_version: v0.15.1
+
+  python-qa:
+    name: python QA
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Lint with Ruff
+        run: ruff check examples/acp_demo.py
+
+      - name: Byte-compile the demo script
+        run: |
+          set -e
+          python3 -m py_compile examples/acp_demo.py
+          echo "OK: examples/acp_demo.py compiles"
