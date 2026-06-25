@@ -1,7 +1,7 @@
 ---
 name: opencode-acp-control
 description: Control OpenCode directly via the Agent Client Protocol (ACP). Start sessions, send prompts, resume conversations, and manage OpenCode updates.
-metadata: {"version": "0.2.0", "author": "Bastian Berrios <bastianberrios.a@gmail.com>", "license": "MIT", "github_url": "https://github.com/berriosb/Opencode-Acp-Control"}
+metadata: {"version": "0.3.0", "author": "Bastian Berrios <bastianberrios.a@gmail.com>", "license": "MIT", "github_url": "https://github.com/berriosb/Opencode-Acp-Control"}
 ---
 
 # OpenCode ACP Skill
@@ -64,7 +64,7 @@ Save the returned `sessionId` - you'll need it for all subsequent commands.
 Send immediately after starting OpenCode:
 
 ```json
-{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{"fs":{"readTextFile":true,"writeTextFile":true},"terminal":true},"clientInfo":{"name":"opencode-acp-control","title":"OpenCode ACP Control","version":"0.2.0"}}}
+{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{"fs":{"readTextFile":true,"writeTextFile":true},"terminal":true},"clientInfo":{"name":"opencode-acp-control","title":"OpenCode ACP Control","version":"0.3.0"}}}
 ```
 
 Poll for response. Expect `result.protocolVersion: 1`.
