@@ -16,3 +16,18 @@ node_modules/
 __pycache__/
 *.py[cod]
 *$py.class
+.pytest_cache/
+*.egg-info/
+
+# Test environments
+.venv/
+.venv-*/
+venv/
+env/
+
+# Test artifacts
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

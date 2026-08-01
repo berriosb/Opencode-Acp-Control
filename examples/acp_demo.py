@@ -47,14 +47,13 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, Optional
-
+from typing import Any
 
 PROTOCOL_VERSION = 1
 CLIENT_INFO = {
     "name": "opencode-acp-control",
     "title": "OpenCode ACP Control",
-    "version": "0.2.0",
+    "version": "0.3.0",
 }
 CLIENT_CAPABILITIES = {
     "fs": {"readTextFile": True, "writeTextFile": True},
@@ -62,7 +61,7 @@ CLIENT_CAPABILITIES = {
 }
 
 
-def frame(request: Dict[str, Any]) -> bytes:
+def frame(request: dict[str, Any]) -> bytes:
     """Serialize a JSON-RPC request as newline-delimited JSON.
 
     OpenCode's ACP transport uses nd-JSON (one JSON object per line) on stdio,
@@ -71,7 +70,7 @@ def frame(request: Dict[str, Any]) -> bytes:
     return (json.dumps(request) + "\n").encode("utf-8")
 
 
-def read_frame(stream, timeout: float = 0.0) -> Optional[Dict[str, Any]]:
+def read_frame(stream, timeout: float = 0.0) -> dict[str, Any] | None:
     """Read one newline-delimited JSON-RPC message from stdin.
 
     If timeout > 0, waits for readability before reading.
@@ -102,7 +101,7 @@ def send_request(proc, method: str, params: Any, msg_id: int) -> int:
     return msg_id
 
 
-def wait_for_id(stream, target_id: int, *, timeout: float = 30.0) -> Dict[str, Any]:
+def wait_for_id(stream, target_id: int, *, timeout: float = 30.0) -> dict[str, Any]:
     """Drain notifications until we see the response for `target_id` or time out."""
     deadline = time.time() + timeout
     while True:
@@ -120,7 +119,7 @@ def wait_for_id(stream, target_id: int, *, timeout: float = 30.0) -> Dict[str, A
             print(f"[demo] notification: {msg['method']}")
 
 
-def stream_session_updates(stream, proc, until_id: int, *, timeout: float = 60.0) -> Optional[Dict[str, Any]]:
+def stream_session_updates(stream, proc, until_id: int, *, timeout: float = 60.0) -> dict[str, Any] | None:
     """Print session/update notifications and handles permission requests until the prompt response arrives.
 
     Returns the matching response frame, or None.
