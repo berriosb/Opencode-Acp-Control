@@ -25,11 +25,11 @@ jobs:
       - name: Install markdownlint-cli
         run: npm install -g markdownlint-cli@0.42.0
 
-      - name: Lint SKILL.md, README.md, CHANGELOG.md
+      - name: Lint all project markdown
         run: |
           set -e
           markdownlint --version
-          markdownlint SKILL.md README.md CHANGELOG.md
+          markdownlint SKILL.md README.md CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md .github/ISSUE_TEMPLATE/*.md
 
   link-check:
     name: link check
@@ -43,14 +43,12 @@ jobs:
         run: |
           set -euo pipefail
           {
-            # Match URLs inside markdown backticks or bare text. Stop at
-            # whitespace, closing backtick, or common trailing punctuation.
-            grep -hoE 'https?://[A-Za-z0-9._/?#&+=%-]+' SKILL.md README.md CHANGELOG.md \
+            grep -hoE 'https?://[A-Za-z0-9._/?#&+=%-]+' \
+              SKILL.md README.md CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md \
               | grep -vE '\.(png|jpg|jpeg|gif|svg|ico|pdf)$' \
               | sort -u
           } > urls.txt
           echo "URLs to check: $(wc -l < urls.txt)"
-          cat urls.txt
 
       - name: Check URLs with lychee
         uses: lycheeverse/lychee-action@v2
@@ -75,10 +73,20 @@ jobs:
         run: pip install ruff
 
       - name: Lint with Ruff
-        run: ruff check examples/acp_demo.py
+        run: |
+          set -e
+          ruff check examples/acp_demo.py
+          ruff check tests/
 
-      - name: Byte-compile the demo script
+      - name: Byte-compile the demo script and tests
         run: |
           set -e
           python3 -m py_compile examples/acp_demo.py
-          echo "OK: examples/acp_demo.py compiles"
+          python3 -m py_compile tests/test_acp_demo.py
+          echo "OK: Python sources compile"
+
+      - name: Run unit tests
+        run: |
+          set -e
+          python3 -m pip install --quiet pytest
+          python3 -m pytest tests/ -v
