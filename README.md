@@ -2,6 +2,7 @@
 
 > **A reusable AI agent skill that lets coding agents drive OpenCode CLI sessions over the Agent Client Protocol (ACP).**
 
+[![ClawHub: opencode-acp-control-3](https://img.shields.io/badge/ClawHub-opencode--acp--control--3-FF6B35?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0NSIgZmlsbD0iIzAwMCIvPjwvc3ZnPg==&logoColor=white)](https://clawhub.ai/berriosb/skills/opencode-acp-control-3)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](./LICENSE)
 [![Protocol: ACP / JSON-RPC 2.0](https://img.shields.io/badge/Protocol-ACP%20%2F%20JSON--RPC%202.0-green?style=flat-square)](https://agentclientprotocol.com)
 [![OpenCode ≥ v1.1.0](https://img.shields.io/badge/OpenCode-%E2%89%A5%20v1.1.0-black?style=flat-square)](https://opencode.ai)
