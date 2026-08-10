@@ -95,7 +95,7 @@ Poll from line zero:
 
 ```bash
 python3 <skill-dir>/scripts/run.py read \
-  --runtime-dir <runtime-dir> --from-line 0 --wait 2
+  --runtime-dir <runtime-dir> --from-line 0 --wait 20
 ```
 
 Save the returned `nextLine` as the next cursor. Do not send `session/new`
@@ -301,6 +301,20 @@ command lines first.
 An OpenCode `sessionId` can survive a transport restart; `runtimeDir` cannot.
 Loading a conversation never proves that the old FIFO or controller is alive.
 
+## Polling and Timeout Strategy
+
+- Interval: **20 seconds** between polling calls while a prompt is pending.
+- Maximum unattended wait per prompt: **10 minutes**. At the ten-minute mark,
+  ask the user whether to abort the prompt. Send `session/cancel` only when the
+  user explicitly confirms. If the user declines, does not respond, or otherwise
+  does not confirm the abort, keep the transport alive and continue polling at
+  20-second intervals. Ten minutes is a confirmation threshold, not an automatic
+  cancellation deadline.
+- An empty poll response means OpenCode is still thinking. Keep the same line
+  cursor and continue polling; do not treat an empty result as completion.
+- Log and skip a malformed stdout line. Continue from the returned or observed
+  next-line cursor; a parse error alone must not abort the prompt or transport.
+
 ## Protocol rules
 
 - Send one JSON object per line, terminated by `\n`. Do not use LSP
@@ -371,7 +385,7 @@ Both `controllerAlive` and `opencodeAlive` must be true before sending.
 | `OpenCode has no live reader` | Child exited or stdin transport broke | Check status/stderr; do not retry on stale FIFO |
 | Empty read with state `ready` | No complete frame is queued yet | Poll again with the same cursor |
 | Malformed entry reported by `read` | Non-JSON data appeared on stdout | Preserve it for diagnosis; continue from `nextLine` |
-| Prompt exceeds five minutes | Model/network stall or unanswered client request | Check pending requests, then cancel |
+| Prompt reaches ten minutes without a terminal response | Long-running work, model/network stall, or unanswered client request | Ask whether to abort; cancel only on explicit confirmation, otherwise continue polling |
 | `session/load` error | Unsupported, stale, or deleted session | Verify capability; fall back to `session/new` |
 
 For FD ownership, cleanup invariants, and recovery details, read
