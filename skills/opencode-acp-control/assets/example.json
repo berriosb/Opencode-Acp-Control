@@ -1,0 +1,14 @@
+{
+  "jsonrpc": "2.0",
+  "id": 0,
+  "method": "initialize",
+  "params": {
+    "protocolVersion": 1,
+    "clientCapabilities": {},
+    "clientInfo": {
+      "name": "opencode-acp-control",
+      "title": "OpenCode ACP Control",
+      "version": "0.4.0"
+    }
+  }
+}

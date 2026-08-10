@@ -29,7 +29,11 @@ jobs:
         run: |
           set -e
           markdownlint --version
-          markdownlint SKILL.md README.md CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md .github/ISSUE_TEMPLATE/*.md
+          markdownlint README.md docs/*.md \
+            skills/opencode-acp-control/SKILL.md \
+            skills/opencode-acp-control/references/*.md \
+            skills/opencode-acp-control/assets/*.md \
+            .github/ISSUE_TEMPLATE/*.md
 
   link-check:
     name: link check
@@ -43,8 +47,8 @@ jobs:
         run: |
           set -euo pipefail
           {
-            grep -hoE 'https?://[A-Za-z0-9._/?#&+=%-]+' \
-              SKILL.md README.md CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md \
+            grep -rhoE 'https?://[A-Za-z0-9._/?#&+=%-]+' \
+              README.md docs/ skills/opencode-acp-control/ \
               | grep -vE '\.(png|jpg|jpeg|gif|svg|ico|pdf)$' \
               | sort -u
           } > urls.txt
@@ -75,15 +79,16 @@ jobs:
       - name: Lint with Ruff
         run: |
           set -e
-          ruff check examples/acp_demo.py
+          ruff check skills/opencode-acp-control/scripts/run.py
           ruff check tests/
 
-      - name: Byte-compile the demo script and tests
+      - name: Check shell and compile Python
         run: |
           set -e
-          python3 -m py_compile examples/acp_demo.py
-          python3 -m py_compile tests/test_acp_demo.py
-          echo "OK: Python sources compile"
+          bash -n skills/opencode-acp-control/scripts/helper.sh
+          python3 -m py_compile skills/opencode-acp-control/scripts/run.py
+          python3 -m py_compile tests/fake_opencode.py tests/test_transport.py
+          echo "OK: transport sources compile"
 
       - name: Run unit tests
         run: |
