@@ -8,8 +8,20 @@
 [![OpenCode ≥ v1.1.0](https://img.shields.io/badge/OpenCode-%E2%89%A5%20v1.1.0-black?style=flat-square)](https://opencode.ai)
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
 [![CI: markdownlint + lychee + ruff + pytest](https://img.shields.io/badge/CI-markdownlint%20%2B%20lychee%20%2B%20ruff%20%2B%20pytest-success?style=flat-square)](./.github/workflows/ci.yml)
-[![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-orange?style=flat-square)](./CHANGELOG.md)
-[![Release: v0.3.0](https://img.shields.io/badge/Release-v0.3.0-blue?style=flat-square)](https://github.com/berriosb/Opencode-Acp-Control/releases)
+[![Version: 0.3.1](https://img.shields.io/badge/Version-0.3.1-orange?style=flat-square)](./CHANGELOG.md)
+[![Release: v0.3.1](https://img.shields.io/badge/Release-v0.3.1-blue?style=flat-square)](https://github.com/berriosb/Opencode-Acp-Control/releases)
+
+## Available on ClawHub
+
+> **Published and distributed on [ClawHub](https://clawhub.ai/berriosb/skills/opencode-acp-control-3)** — the public skill registry for OpenClaw / OpenCode agents.
+>
+> ✅ **205+ downloads** · ⭐ actively maintained · 🏷️ `opencode-acp-control-3` · version `v0.3.1`
+
+**Install via ClawHub:**
+
+```bash
+openclaw skills install @berriosb/opencode-acp-control-3
+```
 
 This repository contains a reusable **skill** (`.md`-based instruction set)
 that enables AI coding agents to **start, control, and monitor OpenCode CLI

@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-08-13
+
+### Changed
+
+- Re-published to ClawHub as `opencode-acp-control-3` (the publish of `0.3.0`
+  silently created this new slug instead of overwriting the previous one).
+- Aligned repo version to match the live ClawHub version. No functional change
+  to the skill itself.
+- README now surfaces the ClawHub link prominently at the top with the install
+  command and the current download count, so visitors see the distribution
+  channel first.
+
 ## [0.3.0] - 2026-08-01
 
 ### Changed
