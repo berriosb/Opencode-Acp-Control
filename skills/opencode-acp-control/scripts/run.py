@@ -17,7 +17,7 @@ import sys
 import tempfile
 import time
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 OWNER_MARKER = "opencode-acp-control-runtime-v1"
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -32,7 +32,7 @@ def emit(payload: dict[str, Any], *, stream: Any = sys.stdout) -> None:
     print(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), file=stream)
 
 
-def pid_from(path: Path) -> Optional[int]:
+def pid_from(path: Path) -> int | None:
     try:
         value = int(path.read_text(encoding="utf-8").strip())
     except (FileNotFoundError, ValueError, OSError):
@@ -40,7 +40,7 @@ def pid_from(path: Path) -> Optional[int]:
     return value if value > 0 else None
 
 
-def pid_alive(pid: Optional[int]) -> bool:
+def pid_alive(pid: int | None) -> bool:
     if pid is None:
         return False
     proc_stat = Path("/proc") / str(pid) / "stat"
