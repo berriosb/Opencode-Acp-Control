@@ -5,17 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.1] - 2026-08-13
+## [0.4.0] - 2026-08-10
+
+### Fixed
+
+- Replaced the non-portable primary startup recipe that assumed a generic
+  background process retained writable stdin.
+- Added a Bash controller that permanently owns the stdin FIFO writer FD and
+  drains a stdout FIFO for the entire OpenCode ACP process lifetime.
+- Corrected ACP v1 permission handling to use
+  `session/request_permission`, offered `optionId` values, and the current
+  `outcome` response shape.
+- The initialization example now advertises only capabilities the calling
+  client actually implements.
+
+### Added
+
+- Installable bundle under `skills/opencode-acp-control/`.
+- `scripts/run.py` transport CLI with start, send, read, status, stop, and
+  stale-runtime cleanup commands.
+- Transport ownership and ACP v1 reference documents, plus reusable assets.
+- End-to-end tests with a fake nd-JSON server. The tests prove that independent
+  one-shot FIFO sends do not deliver EOF while the permanent FD remains open.
 
 ### Changed
 
-- Re-published to ClawHub as `opencode-acp-control-3` (the publish of `0.3.0`
-  silently created this new slug instead of overwriting the previous one).
-- Aligned repo version to match the live ClawHub version. No functional change
-  to the skill itself.
-- README now surfaces the ClawHub link prominently at the top with the install
-  command and the current download count, so visitors see the distribution
-  channel first.
+- Moved project-level community and release documents under `docs/`.
+- Replaced the old `examples/acp_demo.py` with the bundled runtime scripts.
 
 ## [0.3.0] - 2026-08-01
 
@@ -38,8 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`CODE_OF_CONDUCT.md`** — Contributor Covenant v2.1.
-- **`CONTRIBUTING.md`** — How to file issues and PRs, local validation
+- **`docs/CODE_OF_CONDUCT.md`** — Contributor Covenant v2.1.
+- **`docs/CONTRIBUTING.md`** — How to file issues and PRs, local validation
   commands, style rules.
 - **Issue templates** under `.github/ISSUE_TEMPLATE/` for bug reports and
   feature requests.

@@ -15,7 +15,7 @@ A short description of what went wrong.
 - **opencode --version** (output of `opencode --version`):
 - **Agent platform** (Hermes Agent, Clawdbot, custom):
 - **OS** (Linux/macOS/Windows + version):
-- **Python version** (only if relevant to `examples/acp_demo.py`):
+- **Python version** (only if relevant to the bundled `scripts/run.py`):
 
 ## Reproduction
 

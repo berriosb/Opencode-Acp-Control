@@ -12,9 +12,9 @@ What problem are you trying to solve? What works today and what is missing?
 
 ## Proposal
 
-A clear description of the change. For `SKILL.md` rewrites, show the new
-section structure (e.g. "Quick Reference → Protocol Rules → Workflow →
-Failure Modes").
+A clear description of the change. For
+`skills/opencode-acp-control/SKILL.md` rewrites, show the new section structure
+(e.g. "Quick Reference → Protocol Rules → Workflow → Failure Modes").
 
 ## Alternatives considered
 
