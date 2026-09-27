@@ -77,9 +77,9 @@ stdin_fifo=""
 stdout_fifo=""
 state_file=""
 
+# shellcheck disable=SC2317,SC2329
 cleanup() {
     local original_status=$?
-    local attempt
 
     trap - EXIT INT TERM HUP
 
@@ -91,13 +91,13 @@ cleanup() {
     fi
 
     if [[ -n "$opencode_pid" ]] && kill -0 "$opencode_pid" 2>/dev/null; then
-        for attempt in {1..20}; do
+        for _ in {1..20}; do
             kill -0 "$opencode_pid" 2>/dev/null || break
             sleep 0.05
         done
         if kill -0 "$opencode_pid" 2>/dev/null; then
             kill -TERM "$opencode_pid" 2>/dev/null || true
-            for attempt in {1..20}; do
+            for _ in {1..20}; do
                 kill -0 "$opencode_pid" 2>/dev/null || break
                 sleep 0.05
             done
