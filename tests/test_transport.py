@@ -206,3 +206,39 @@ def test_stop_repairs_runtime_when_controller_cannot_trap(controller):
     assert stopped["state"] == "stopped:external"
     assert stopped["cleaned"] is True
     assert not runtime.exists()
+
+
+def test_child_preserves_caller_umask(controller):
+    runtime, _ = controller
+    query = {"jsonrpc": "2.0", "id": 10, "method": "get_umask"}
+    run_cli("send", "--runtime-dir", str(runtime), "--frame", json.dumps(query))
+    _, result = run_cli("read", "--runtime-dir", str(runtime), "--from-line", "0", "--wait", "2")
+    child_umask = result["frames"][0]["result"]["umask"]
+    # Controller uses umask 077 internally, but child must not be constrained by 077
+    assert child_umask != oct(0o77)
+
+
+def test_stop_escalates_to_sigkill_when_child_ignores_sigterm(controller):
+    runtime, _ = controller
+    # Tell fake_opencode to ignore SIGTERM
+    query = {"jsonrpc": "2.0", "id": 20, "method": "ignore_sigterm"}
+    run_cli("send", "--runtime-dir", str(runtime), "--frame", json.dumps(query))
+    run_cli("read", "--runtime-dir", str(runtime), "--from-line", "0", "--wait", "2")
+
+    # Stop should escalate to SIGKILL and terminate cleanly
+    _, stopped = run_cli("stop", "--runtime-dir", str(runtime), "--timeout", "1.0")
+    assert stopped["opencodeAlive"] is False
+    assert stopped["cleaned"] is True
+    assert not runtime.exists()
+
+
+def test_pid_alive_handles_process_names_with_spaces(monkeypatch):
+    sys.path.insert(0, str(SKILL_DIR / "scripts"))
+    import run  # type: ignore
+
+    fake_stat = "12345 (fake opencode process) Z 1 12345 0 0 -1 0 0 0 0\n"
+    monkeypatch.setattr(run.Path, "exists", lambda self: True)
+    monkeypatch.setattr(run.Path, "read_text", lambda self, encoding="utf-8": fake_stat)
+
+    # Process is a zombie ("Z"), so pid_alive must return False
+    assert run.pid_alive(12345) is False

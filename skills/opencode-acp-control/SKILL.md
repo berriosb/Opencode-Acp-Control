@@ -2,7 +2,7 @@
 name: opencode-acp-control
 description: Start, drive, monitor, resume, and stop OpenCode CLI sessions over ACP. Use when an agent must control `opencode acp` programmatically through JSON-RPC, especially in runtimes whose background-process tools close stdin or that have no Python. Includes a persistent-FD FIFO controller and a standalone Bash workflow.
 metadata:
-  version: "0.4.0"
+  version: "0.4.1"
   license: "MIT"
 ---
 
@@ -88,7 +88,7 @@ minimal handshake advertises none:
 ```bash
 python3 <skill-dir>/scripts/run.py send \
   --runtime-dir <runtime-dir> \
-  --frame '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{},"clientInfo":{"name":"opencode-acp-control","title":"OpenCode ACP Control","version":"0.4.0"}}}'
+  --frame '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{},"clientInfo":{"name":"opencode-acp-control","title":"OpenCode ACP Control","version":"0.4.1"}}}'
 ```
 
 Poll from line zero:
@@ -204,7 +204,7 @@ Use `printf`, not `echo`, and terminate every frame with exactly one newline:
 
 ```bash
 printf '%s\n' \
-  '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{},"clientInfo":{"name":"opencode-acp-control-shell","title":"OpenCode ACP Control Shell","version":"0.4.0"}}}' \
+  '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{},"clientInfo":{"name":"opencode-acp-control-shell","title":"OpenCode ACP Control Shell","version":"0.4.1"}}}' \
   >/tmp/opencode-acp.ABC123/stdin.fifo
 ```
 

@@ -67,6 +67,73 @@ else
     opencode_bin=$(command -v -- "$opencode_bin") || fail "OpenCode executable not found on PATH"
 fi
 
+orig_umask=$(umask)
+
+opencode_pid=""
+fd3_open=false
+fd4_open=false
+child_status=0
+stdin_fifo=""
+stdout_fifo=""
+state_file=""
+
+cleanup() {
+    local original_status=$?
+    local attempt
+
+    trap - EXIT INT TERM HUP
+
+    # FD 3 is the permanent writer. Closing it is the graceful shutdown: once
+    # one-shot senders are gone, OpenCode observes EOF on stdin and disposes.
+    if [[ "$fd3_open" == true ]]; then
+        exec 3>&-
+        fd3_open=false
+    fi
+
+    if [[ -n "$opencode_pid" ]] && kill -0 "$opencode_pid" 2>/dev/null; then
+        for attempt in {1..20}; do
+            kill -0 "$opencode_pid" 2>/dev/null || break
+            sleep 0.05
+        done
+        if kill -0 "$opencode_pid" 2>/dev/null; then
+            kill -TERM "$opencode_pid" 2>/dev/null || true
+            for attempt in {1..20}; do
+                kill -0 "$opencode_pid" 2>/dev/null || break
+                sleep 0.05
+            done
+            if kill -0 "$opencode_pid" 2>/dev/null; then
+                kill -KILL "$opencode_pid" 2>/dev/null || true
+            fi
+        fi
+        wait "$opencode_pid" 2>/dev/null || true
+    fi
+
+    if [[ "$fd4_open" == true ]]; then
+        exec 4<&-
+        fd4_open=false
+    fi
+
+    # Keep regular logs for diagnosis, but never leave live FIFO endpoints.
+    if [[ -n "$stdin_fifo" || -n "$stdout_fifo" ]]; then
+        rm -f -- "${stdin_fifo:-}" "${stdout_fifo:-}"
+    fi
+
+    if [[ "$child_status" -eq 0 && "$original_status" -ne 0 ]]; then
+        child_status=$original_status
+    fi
+
+    if [[ -n "$state_file" && -d "${runtime_dir:-}" ]]; then
+        printf '%s\n' "stopped:$child_status" >"$state_file" 2>/dev/null || true
+        printf 'STOPPED\t%s\t%s\n' "$runtime_dir" "$child_status"
+    fi
+    return "$original_status"
+}
+
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+trap 'exit 129' HUP
+
 umask 077
 mkdir -p -- "$runtime_dir" || fail "cannot create runtime directory: $runtime_dir"
 runtime_dir=$(cd -- "$runtime_dir" && pwd -P) || fail "cannot resolve runtime directory"
@@ -92,58 +159,17 @@ printf '%s\n' "$$" >"$controller_pid_file"
 : >"$stderr_log"
 mkfifo -m 600 -- "$stdin_fifo" "$stdout_fifo" || fail "cannot create FIFO nodes"
 
-opencode_pid=""
-fd3_open=false
-fd4_open=false
-child_status=0
-
-cleanup() {
-    local original_status=$?
-    local attempt
-
-    trap - EXIT INT TERM HUP
-
-    # FD 3 is the permanent writer. Closing it is the graceful shutdown: once
-    # one-shot senders are gone, OpenCode observes EOF on stdin and disposes.
-    if [[ "$fd3_open" == true ]]; then
-        exec 3>&-
-        fd3_open=false
-    fi
-
-    if [[ -n "$opencode_pid" ]] && kill -0 "$opencode_pid" 2>/dev/null; then
-        for attempt in {1..20}; do
-            kill -0 "$opencode_pid" 2>/dev/null || break
-            sleep 0.05
-        done
-        if kill -0 "$opencode_pid" 2>/dev/null; then
-            kill -TERM "$opencode_pid" 2>/dev/null || true
-        fi
-        wait "$opencode_pid" 2>/dev/null || true
-    fi
-
-    if [[ "$fd4_open" == true ]]; then
-        exec 4<&-
-        fd4_open=false
-    fi
-
-    # Keep regular logs for diagnosis, but never leave live FIFO endpoints.
-    rm -f -- "$stdin_fifo" "$stdout_fifo"
-    printf '%s\n' "stopped:$child_status" >"$state_file"
-    printf 'STOPPED\t%s\t%s\n' "$runtime_dir" "$child_status"
-    return "$original_status"
-}
-
-trap cleanup EXIT
-trap 'exit 130' INT
-trap 'exit 143' TERM
-trap 'exit 129' HUP
-
 # Start the child before opening FD 3. This guarantees the child cannot inherit
 # the permanent writer. Its stdin open blocks until the controller opens FD 3.
-"$opencode_bin" acp --cwd "$workdir" \
-    <"$stdin_fifo" \
-    >"$stdout_fifo" \
-    2>>"$stderr_log" &
+# Restore the caller's original umask so workspace files created by OpenCode
+# are not constrained by the controller's private 077 umask.
+(
+    umask "$orig_umask"
+    exec "$opencode_bin" acp --cwd "$workdir" \
+        <"$stdin_fifo" \
+        >"$stdout_fifo" \
+        2>>"$stderr_log"
+) &
 opencode_pid=$!
 printf '%s\n' "$opencode_pid" >"$opencode_pid_file"
 

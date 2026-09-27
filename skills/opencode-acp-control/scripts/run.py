@@ -47,7 +47,9 @@ def pid_alive(pid: int | None) -> bool:
     if proc_stat.exists():
         try:
             # A zombie has exited even though kill(pid, 0) still succeeds.
-            if proc_stat.read_text(encoding="utf-8").split()[2] == "Z":
+            # Parse state after the last ')' to tolerate spaces/parentheses in comm.
+            raw_stat = proc_stat.read_text(encoding="utf-8")
+            if raw_stat.rpartition(")")[2].split()[0] == "Z":
                 return False
         except (OSError, IndexError):
             pass
@@ -371,7 +373,32 @@ def command_stop(args: argparse.Namespace) -> int:
             child_signalled = True
         time.sleep(0.05)
     else:
-        raise TransportError("controller did not stop before timeout")
+        # Escalate to SIGKILL if processes survived the deadline.
+        opencode_pid = pid_from(runtime / "opencode.pid")
+        if opencode_pid and opencode_belongs_to_runtime(opencode_pid, runtime):
+            try:
+                os.kill(opencode_pid, signal.SIGKILL)
+            except OSError:
+                pass
+        if controller_pid and process_belongs_to_runtime(controller_pid, runtime):
+            try:
+                os.kill(controller_pid, signal.SIGKILL)
+            except OSError:
+                pass
+
+        kill_deadline = time.monotonic() + 1.0
+        while time.monotonic() < kill_deadline:
+            controller_alive = bool(
+                controller_pid and process_belongs_to_runtime(controller_pid, runtime)
+            )
+            opencode_alive = bool(
+                opencode_pid and opencode_belongs_to_runtime(opencode_pid, runtime)
+            )
+            if not controller_alive and not opencode_alive:
+                break
+            time.sleep(0.05)
+        else:
+            raise TransportError("controller did not stop before timeout")
 
     if not read_state(runtime).startswith("stopped:"):
         # SIGKILL and some process supervisors bypass EXIT traps. Once both

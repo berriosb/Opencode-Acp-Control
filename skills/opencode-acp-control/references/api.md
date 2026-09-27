@@ -16,7 +16,7 @@ Authoritative references:
 ### Initialize
 
 ```json
-{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{},"clientInfo":{"name":"opencode-acp-control","title":"OpenCode ACP Control","version":"0.4.0"}}}
+{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{},"clientInfo":{"name":"opencode-acp-control","title":"OpenCode ACP Control","version":"0.4.1"}}}
 ```
 
 All client capability fields are optional. Omitted capabilities are

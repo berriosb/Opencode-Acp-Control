@@ -85,6 +85,7 @@ jobs:
       - name: Check shell and compile Python
         run: |
           set -e
+          shellcheck skills/opencode-acp-control/scripts/helper.sh
           bash -n skills/opencode-acp-control/scripts/helper.sh
           python3 -m py_compile skills/opencode-acp-control/scripts/run.py
           python3 -m py_compile tests/fake_opencode.py tests/test_transport.py

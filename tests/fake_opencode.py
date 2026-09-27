@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import json
+import os
+import signal
 import sys
 
 
@@ -14,6 +16,13 @@ def response(message: dict) -> dict:
         result = {"protocolVersion": 1, "agentCapabilities": {}}
     elif method == "session/new":
         result = {"sessionId": "fake-session"}
+    elif method == "get_umask":
+        current = os.umask(0)
+        os.umask(current)
+        result = {"umask": oct(current)}
+    elif method == "ignore_sigterm":
+        signal.signal(signal.SIGTERM, signal.SIG_IGN)
+        result = {"ignoring": True}
     else:
         result = {"echoMethod": method}
     return {"jsonrpc": "2.0", "id": message_id, "result": result}
